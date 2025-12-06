@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>10 Buck Productions — Real Estate Media</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="10 Buck Productions — real estate photography, video, drone, and 3D virtual tours."
+  />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="site">
+
+    <!-- Header / Navigation -->
+    <header class="site-header">
+      <div class="container nav">
+        <a href="#hero" class="brand">
+          <span class="brand-mark"></span>
+          <span class="brand-text">
+            10 Buck Productions<br />
+            <small>Real Estate Media</small>
+          </span>
+        </a>
+
+        <nav class="nav-links">
+          <a href="#services">Services</a>
+          <a href="#portfolio">Portfolio</a>
+          <a href="#media-types">Media Types</a>
+          <a href="#about">About</a>
+          <a href="#contact" class="nav-cta">Book</a>
+        </nav>
+
+        <button class="nav-toggle" aria-label="Toggle navigation">
+          <span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+
+      <!-- HERO -->
+      <section id="hero" class="section hero">
+        <div class="container hero-grid">
+          <div class="hero-copy" data-reveal>
+            <p class="eyebrow">Photo · Video · Drone · 3D Tours</p>
+            <h1>Real estate media that actually stops the scroll.</h1>
+            <p class="muted">
+              10 Buck Productions helps agents and investors show off their
+              listings with clean photos, cinematic video, and modern 3D experiences,
+              without overcomplicating the process.
+            </p>
+            <div class="hero-actions">
+              <a href="#contact" class="btn primary">Book a shoot</a>
+              <a href="#portfolio" class="btn ghost">See sample work</a>
+            </div>
+
+            <div class="hero-stats">
+              <div>
+                <span class="stat-number">50+</span>
+                <span class="stat-label">Listings captured</span>
+              </div>
+              <div>
+                <span class="stat-number">24–48h</span>
+                <span class="stat-label">Typical delivery</span>
+              </div>
+              <div>
+                <span class="stat-number">4</span>
+                <span class="stat-label">Core services</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-media" data-reveal>
+            <div class="hero-card main">
+              <div class="hero-thumb thumb-main"></div>
+              <div class="hero-tag">
+                Featured: Sunset exterior — Drone + Photo
+              </div>
+            </div>
+            <div class="hero-card secondary">
+              <div class="hero-thumb thumb-drone"></div>
+              <div class="hero-tag">Neighborhood overview · 4K drone</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SERVICES with "add to cart" style -->
+      <section id="services" class="section">
+        <div class="container">
+          <header class="section-header" data-reveal>
+            <h2>Services built for listings</h2>
+            <p class="muted">
+              Choose what you need like items in a cart. In a full build, this would
+              connect to a backend booking system here it fills in your inquiry.
+            </p>
+          </header>
+
+          <div class="grid grid-3" data-reveal>
+            <article class="card card-elevated service-card">
+              <h3>Listing Photos</h3>
+              <p class="muted">
+                Clean, bright interior and exterior photos that show off the space
+                honestly but attractively.
+              </p>
+              <ul class="tag-list">
+                <li>Up to 30 edited photos</li>
+                <li>MLS + social formats</li>
+                <li>Straight, color-corrected shots</li>
+              </ul>
+              <div class="service-meta">
+                <span class="service-price">From $175</span>
+                <button
+                  class="btn service-add"
+                  type="button"
+                  data-service-name="Listing Photos"
+                  data-service-price="From $175"
+                >
+                  Add to inquiry
+                </button>
+              </div>
+            </article>
+
+            <article class="card card-elevated service-card">
+              <h3>Photo + Video Tour</h3>
+              <p class="muted">
+                A full photo set plus a short cinematic walkthrough that helps
+                buyers feel the flow of the home.
+              </p>
+              <ul class="tag-list">
+                <li>30+ edited photos</li>
+                <li>60–90s highlight video</li>
+                <li>Horizontal + vertical exports</li>
+              </ul>
+              <div class="service-meta">
+                <span class="service-price">From $275</span>
+                <button
+                  class="btn service-add"
+                  type="button"
+                  data-service-name="Photo + Video Tour"
+                  data-service-price="From $275"
+                >
+                  Add to inquiry
+                </button>
+              </div>
+            </article>
+
+            <article class="card card-elevated service-card">
+              <h3>Drone + 3D Tour Bundle</h3>
+              <p class="muted">
+                Aerials plus a 3D-style virtual experience so buyers can explore
+                the property like they’re there in person.
+              </p>
+              <ul class="tag-list">
+                <li>4K drone photos & clips</li>
+                <li>Virtual walkthrough (3D-style)</li>
+                <li>Perfect for premium listings</li>
+              </ul>
+              <div class="service-meta">
+                <span class="service-price">From $375</span>
+                <button
+                  class="btn service-add"
+                  type="button"
+                  data-service-name="Drone + 3D Tour Bundle"
+                  data-service-price="From $375"
+                >
+                  Add to inquiry
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <div class="card card-elevated service-summary" data-reveal>
+            <h3>Your selected services</h3>
+            <p id="service-summary" class="muted small">
+              No services selected yet. Click “Add to inquiry” on any package to
+              build your ideal shoot.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- PORTFOLIO: stock/placeholder visuals -->
+      <section id="portfolio" class="section section-alt">
+        <div class="container">
+          <header class="section-header" data-reveal>
+            <h2>Sample work (placeholder media)</h2>
+            <p class="muted">
+              Until we build out a full library of your content, these represent
+              the type of visuals 10 Buck Productions aims to deliver.
+            </p>
+          </header>
+
+          <div class="grid grid-3 portfolio-grid" data-reveal>
+            <figure class="card media-card">
+              <div class="media-thumb thumb-p1">
+                <div class="media-overlay">
+                  <span class="media-label">Listing Photos</span>
+                </div>
+              </div>
+              <figcaption>
+                <h3>Bright Interior</h3>
+                <p class="muted">
+                  Natural-light photography that keeps rooms feeling open and real.
+                </p>
+              </figcaption>
+            </figure>
+
+            <figure class="card media-card">
+              <div class="media-thumb thumb-p2">
+                <div class="media-overlay">
+                  <span class="media-label">Video Tour</span>
+                </div>
+              </div>
+              <figcaption>
+                <h3>Cinematic Walkthrough</h3>
+                <p class="muted">
+                  Smooth movement through the home, focusing on layout and details.
+                </p>
+              </figcaption>
+            </figure>
+
+            <figure class="card media-card">
+              <div class="media-thumb thumb-p3">
+                <div class="media-overlay">
+                  <span class="media-label">Drone + Neighborhood</span>
+                </div>
+              </div>
+              <figcaption>
+                <h3>Aerial Overview</h3>
+                <p class="muted">
+                  4K drone angles that show off the lot, street, and nearby views.
+                </p>
+              </figcaption>
+            </figure>
+          </div>
+
+          <p class="muted small center" data-reveal>
+            In a full production site, this grid would be populated with your own
+            photo sets, reels, and 3D tours hosted on platforms like YouTube,
+            Vimeo, or Matterport.
+          </p>
+        </div>
+      </section>
+
+      <!-- MEDIA TYPES: Drone / 3D / Photo blocks -->
+      <section id="media-types" class="section">
+        <div class="container">
+          <header class="section-header" data-reveal>
+            <h2>Media we specialize in</h2>
+            <p class="muted">
+              Even with a small current portfolio, we’re building toward a full
+              stack of modern real estate media.
+            </p>
+          </header>
+
+          <div class="grid grid-3" data-reveal>
+            <article class="card card-elevated">
+              <h3>Drone Aerials</h3>
+              <p class="muted">
+                Wide establishing shots, smooth flyovers, and neighborhood context
+                that ground the listing in its surroundings.
+              </p>
+              <p class="muted small">
+                Ideal for larger lots, land listings, or homes with strong views.
+              </p>
+            </article>
+
+            <article class="card card-elevated">
+              <h3>3D-Style Virtual Tours</h3>
+              <p class="muted">
+                Room-to-room walkthroughs that mimic 3D tour experiences, helping
+                buyers explore remotely.
+              </p>
+              <p class="muted small">
+                Great for out-of-town buyers or busy relocations.
+              </p>
+            </article>
+
+            <article class="card card-elevated">
+              <h3>Listing Photo Sets</h3>
+              <p class="muted">
+                Clean, consistent photos that match MLS standards and stand out on
+                social media feeds.
+              </p>
+              <p class="muted small">
+                Perfect for standard listings, rentals, and Airbnbs.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABOUT with headshots for Hunter and Josh -->
+      <section id="about" class="section section-alt">
+        <div class="container">
+          <div class="about-grid">
+            <div data-reveal>
+              <h2>About 10 Buck Productions</h2>
+              <p class="muted">
+                We’re a small, hungry team focused on helping agents make their
+                listings stand out with modern visuals. We started in automotive
+                and content creation, and brought that eye for detail into real estate.
+              </p>
+              <p class="muted">
+                The mission is simple: make your listing look like the one buyers
+                remember after scrolling through dozens.
+              </p>
+            </div>
+
+            <div class="team-grid" data-reveal>
+              <article class="card card-elevated team-card">
+                <div class="team-avatar">
+                  <!-- Replace src with your actual headshot -->
+                  <img src="assets/images/h.jpg" alt="Hunter headshot" />
+                </div>
+                <h3>Hunter</h3>
+                <p class="muted small">
+                  Photographer, videographer, and the one obsessing over angles,
+                  light, and making sure your listing doesn’t look generic.
+                </p>
+              </article>
+
+              <article class="card card-elevated team-card">
+                <div class="team-avatar">
+                  <!-- Replace src with Josh's actual headshot -->
+                  <img src="assets/images/j.jpg" alt="Josh headshot" />
+                </div>
+                <h3>Josh</h3>
+                <p class="muted small">
+                  Creative partner, automotive content fanatic, and second shooter
+                  for big, multi-media days.
+                </p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT + Calendly -->
+      <section id="contact" class="section">
+  <div class="container">
+    <header class="section-header" data-reveal>
+      <h2>Book a shoot or planning call</h2>
+      <p class="muted">
+        You can send us the details directly, then optionally grab time on the calendar
+        below. On a real deployment, both would connect to the same booking system.
+      </p>
+    </header>
+
+    <!-- Form + helpful info -->
+    <div class="contact-layout" data-reveal>
+      <div class="contact-grid">
+        <form class="card contact-form card-elevated" id="contact-form">
+          <div>
+            <label for="name">Name</label>
+            <input id="name" type="text" placeholder="Your name" required />
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="you@example.com" required />
+          </div>
+          <div>
+            <label for="details">Property & details</label>
+            <textarea
+              id="details"
+              placeholder="Address, type of shoot, preferred dates, access details..."
+              rows="4"
+            ></textarea>
+          </div>
+          <button type="submit" class="btn primary">Send request</button>
+          <p id="contact-status" class="muted small" aria-live="polite"></p>
+        </form>
+
+        <aside class="card contact-aside card-elevated">
+          <h3>Helpful info to include</h3>
+          <p class="muted small">
+            • Address and rough square footage<br />
+            • Type of property (single-family, townhouse, land, etc.)<br />
+            • Which services you selected above<br />
+            • Ideal shoot window
+          </p>
+          <p class="muted small">
+            The more detail you share up front, the faster we can lock in a time.
+          </p>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Calendly as its own block below -->
+    <div class="calendly-block card card-elevated" data-reveal>
+      <h3>Or schedule via Calendly</h3>
+      <p class="muted small">
+        If you’d rather talk things through live, grab a quick intro slot. In a full
+        version of this site, this embed would be wired to our real availability.
+      </p>
+      <!-- Replace the src below with your actual Calendly link -->
+      <div class="calendly-embed-wrapper">
+        <iframe
+          title="Calendly scheduling"
+          src="https://calendly.com/hunterespaniola50/30min"
+          frameborder="0"
+          loading="lazy"
+        ></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+    </main>
+
+    <!-- Back to top button -->
+    <button class="to-top" id="to-top" aria-label="Back to top">
+      ↑
+    </button>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span class="muted small">
+          © 2025 10 Buck Productions. All rights reserved.
+        </span>
+        <span class="muted small">
+          Real Estate Photo · Video · Drone · 3D Tours
+        </span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>
