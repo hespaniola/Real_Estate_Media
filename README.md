@@ -1,7 +1,6 @@
 # 10 Buck Productions — Real Estate Media Workflow System
 Author: Hunter Espaniola  
 Software Engineering — Stage 4 Submission
-
 ## Project Overview
 This project models the operational workflow of a real estate media company.  
 It simulates booking, client interaction, service tracking, scheduling, deliverable handling, and payment alignment.  
