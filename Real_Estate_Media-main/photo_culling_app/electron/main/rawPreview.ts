@@ -1,0 +1,48 @@
+/**
+ * Format-agnostic embedded-JPEG extraction for camera RAW files.
+ *
+ * Every mainstream RAW container (CR2/CR3, NEF, ARW, RAF, RW2, ORF, DNG, PEF...)
+ * embeds one or more standard baseline JPEG streams for fast preview purposes,
+ * regardless of the surrounding TIFF/ISO-BMFF container format. Rather than
+ * writing a parser per vendor format, we scan the raw bytes for JPEG
+ * SOI...EOI (0xFFD8...0xFFD9) segments and keep the largest one — this is
+ * the same trick fast RAW browsers use under the hood, and it degrades
+ * gracefully (returns null) for anything unrecognized.
+ */
+
+interface JpegSegment {
+  start: number
+  end: number // exclusive
+}
+
+const SOI = Buffer.from([0xff, 0xd8, 0xff])
+const EOI = Buffer.from([0xff, 0xd9])
+const MIN_SEGMENT_BYTES = 4 * 1024
+
+export function findEmbeddedJpegSegments(buffer: Buffer): JpegSegment[] {
+  const segments: JpegSegment[] = []
+  let cursor = 0
+  while (cursor < buffer.length) {
+    const start = buffer.indexOf(SOI, cursor)
+    if (start === -1) break
+    const end = buffer.indexOf(EOI, start + SOI.length)
+    if (end === -1) break
+    const segmentEnd = end + EOI.length
+    if (segmentEnd - start >= MIN_SEGMENT_BYTES) {
+      segments.push({ start, end: segmentEnd })
+    }
+    cursor = segmentEnd
+  }
+  return segments
+}
+
+/** Returns the byte range of the largest embedded JPEG stream, or null. */
+export function extractLargestEmbeddedJpeg(buffer: Buffer): Buffer | null {
+  const segments = findEmbeddedJpegSegments(buffer)
+  if (segments.length === 0) return null
+  let best = segments[0]
+  for (const seg of segments) {
+    if (seg.end - seg.start > best.end - best.start) best = seg
+  }
+  return buffer.subarray(best.start, best.end)
+}
