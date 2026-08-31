@@ -27,7 +27,11 @@ export default function Inspector({ record, onOpenLoupe }: InspectorProps): JSX.
   return (
     <aside className="inspector">
       <div className="inspector__preview" onDoubleClick={onOpenLoupe}>
-        {record.previewPath && <img src={toAssetUrl(record.previewPath)} alt={record.fileName} />}
+        {record.previewPath ? (
+          <img src={toAssetUrl(record.previewPath)} alt={record.fileName} />
+        ) : (
+          <div className="inspector__preview-empty">No preview available</div>
+        )}
       </div>
 
       <div className="inspector__flagbar">

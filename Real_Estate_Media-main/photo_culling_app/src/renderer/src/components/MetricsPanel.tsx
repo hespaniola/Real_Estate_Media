@@ -31,6 +31,24 @@ function formatShutter(s?: string): string {
 export default function MetricsPanel({ record }: MetricsPanelProps): JSX.Element {
   const score = record.score
 
+  if (record.status === 'error') {
+    return (
+      <div className="metrics-panel">
+        <div className="metrics-panel__error">
+          <div className="metrics-panel__error-title">⚠ Analysis failed</div>
+          <div className="metrics-panel__error-message">{record.error ?? 'Unknown error'}</div>
+        </div>
+        <div className="metrics-panel__section-title">Details</div>
+        <dl className="metrics-panel__exif">
+          <dt>File</dt>
+          <dd>{(record.size / (1024 * 1024)).toFixed(1)} MB</dd>
+          <dt>Path</dt>
+          <dd className="metrics-panel__exif-path">{record.filePath}</dd>
+        </dl>
+      </div>
+    )
+  }
+
   return (
     <div className="metrics-panel">
       <div className="metrics-panel__score">

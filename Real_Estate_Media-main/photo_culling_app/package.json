@@ -16,7 +16,8 @@
     "preview": "electron-vite preview",
     "dist": "electron-vite build && electron-builder",
     "test:analysis": "tsx scripts/test-analysis.mjs",
-    "test:integration": "npm run build && tsx scripts/test-integration.mjs"
+    "test:integration": "npm run build && tsx scripts/test-integration.mjs",
+    "test:store": "tsx scripts/test-store-filters.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.17",

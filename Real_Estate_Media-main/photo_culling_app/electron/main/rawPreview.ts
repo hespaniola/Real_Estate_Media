@@ -36,13 +36,21 @@ export function findEmbeddedJpegSegments(buffer: Buffer): JpegSegment[] {
   return segments
 }
 
+/**
+ * All embedded JPEG-shaped byte spans, largest first. A byte pattern that
+ * merely *looks* like a JPEG (an SOI...EOI span landing inside maker-note or
+ * other binary metadata) doesn't always decode — callers should try each
+ * candidate in order and fall back to the next one if a given span fails to
+ * decode, rather than trusting the largest span outright.
+ */
+export function extractEmbeddedJpegCandidates(buffer: Buffer): Buffer[] {
+  const segments = findEmbeddedJpegSegments(buffer)
+  segments.sort((a, b) => (b.end - b.start) - (a.end - a.start))
+  return segments.map((seg) => buffer.subarray(seg.start, seg.end))
+}
+
 /** Returns the byte range of the largest embedded JPEG stream, or null. */
 export function extractLargestEmbeddedJpeg(buffer: Buffer): Buffer | null {
-  const segments = findEmbeddedJpegSegments(buffer)
-  if (segments.length === 0) return null
-  let best = segments[0]
-  for (const seg of segments) {
-    if (seg.end - seg.start > best.end - best.start) best = seg
-  }
-  return buffer.subarray(best.start, best.end)
+  const candidates = extractEmbeddedJpegCandidates(buffer)
+  return candidates[0] ?? null
 }

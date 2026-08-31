@@ -8,7 +8,7 @@ interface TopBarProps {
   onChooseFolder: () => void
 }
 
-const FILTERS: Array<{ key: FilterMode; label: string }> = [
+const BASE_FILTERS: Array<{ key: FilterMode; label: string }> = [
   { key: 'all', label: 'All' },
   { key: 'recommended', label: 'Picks' },
   { key: 'accepted', label: 'Accepted' },
@@ -38,8 +38,14 @@ export default function TopBar({ visibleCount, totalCount, onChooseFolder }: Top
     const accepted = list.filter((r) => r.flag === 'accepted').length
     const favorite = list.filter((r) => r.flag === 'favorite').length
     const rejected = list.filter((r) => r.flag === 'rejected').length
-    return { accepted, favorite, rejected, groups: groups.length }
+    const failed = list.filter((r) => r.status === 'error').length
+    return { accepted, favorite, rejected, failed, groups: groups.length }
   }, [records, groups])
+
+  const filters = useMemo(
+    () => (stats.failed > 0 ? [...BASE_FILTERS, { key: 'failed' as FilterMode, label: `Failed (${stats.failed})` }] : BASE_FILTERS),
+    [stats.failed]
+  )
 
   const pct = progress && progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0
 
@@ -57,10 +63,10 @@ export default function TopBar({ visibleCount, totalCount, onChooseFolder }: Top
         </div>
 
         <div className="topbar__filters">
-          {FILTERS.map((f) => (
+          {filters.map((f) => (
             <button
               key={f.key}
-              className={`chip ${filter === f.key ? 'chip--active' : ''}`}
+              className={`chip ${f.key === 'failed' ? 'chip--warn' : ''} ${filter === f.key ? 'chip--active' : ''}`}
               onClick={() => setFilter(f.key)}
             >
               {f.label}
@@ -72,6 +78,7 @@ export default function TopBar({ visibleCount, totalCount, onChooseFolder }: Top
           <span className="stat stat--accept">{stats.accepted} accepted</span>
           <span className="stat stat--favorite">{stats.favorite} favorite</span>
           <span className="stat stat--reject">{stats.rejected} rejected</span>
+          {stats.failed > 0 && <span className="stat stat--failed">{stats.failed} failed</span>}
           <select className="select" value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)}>
             <option value="score">Sort: Score</option>
             <option value="name">Sort: Name</option>

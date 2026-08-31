@@ -4,7 +4,7 @@ import sharp from 'sharp'
 import exifr from 'exifr'
 import type { ExifSummary } from '../shared/types'
 import { computeExposure, computeComposition, computeDHash, computeSharpness } from './imageAnalysis'
-import { extractLargestEmbeddedJpeg } from './rawPreview'
+import { extractEmbeddedJpegCandidates } from './rawPreview'
 import type { WorkerTask, WorkerResult } from './workerContract'
 
 const ANALYSIS_SIZE = 1024
@@ -59,14 +59,30 @@ async function readExifSummary(filePath: string): Promise<ExifSummary> {
   }
 }
 
+const MAX_EMBEDDED_CANDIDATES = 5
+
+/**
+ * A byte span that merely *looks* like a JPEG (SOI...EOI landing inside
+ * maker-note data, or — in a large RAW file — inside raw sensor data that
+ * coincidentally contains those marker bytes) doesn't always decode. Try
+ * candidates largest-first and keep the first one that actually decodes,
+ * rather than trusting the biggest span outright.
+ */
 async function getPreviewSource(filePath: string, kind: WorkerTask['kind']): Promise<sharp.Sharp> {
   if (kind === 'raw') {
     const buffer = await readFile(filePath)
-    const embedded = extractLargestEmbeddedJpeg(buffer)
-    if (embedded) return sharp(embedded)
+    const candidates = extractEmbeddedJpegCandidates(buffer).slice(0, MAX_EMBEDDED_CANDIDATES)
+    for (const candidate of candidates) {
+      const image = sharp(candidate)
+      const valid = await image
+        .metadata()
+        .then((m) => !!m.width && !!m.height)
+        .catch(() => false)
+      if (valid) return image
+    }
     const thumb = await exifr.thumbnail(filePath).catch(() => null)
     if (thumb) return sharp(Buffer.from(thumb))
-    throw new Error('No embeddable preview found in RAW file')
+    throw new Error('No decodable embedded preview found in RAW file')
   }
   return sharp(filePath)
 }

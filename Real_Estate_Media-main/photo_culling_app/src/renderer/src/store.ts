@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { DuplicateGroup, FaceMetrics, FlagState, ImageRecord, ScanProgress, ScoreBreakdown } from '@shared/types'
 
-export type FilterMode = 'all' | 'unflagged' | 'accepted' | 'rejected' | 'favorite' | 'recommended'
+export type FilterMode = 'all' | 'unflagged' | 'accepted' | 'rejected' | 'favorite' | 'recommended' | 'failed'
 export type SortMode = 'score' | 'name' | 'date' | 'group'
 
 interface AppState {
@@ -97,9 +97,14 @@ export const useStore = create<AppState>((set, get) => ({
 }))
 
 export function passesFilter(record: ImageRecord, filter: FilterMode): boolean {
+  if (filter === 'failed') return record.status === 'error'
+  if (filter === 'all') return true
+  // Every other filter is a judgment about a successfully analyzed photo —
+  // a failed one has no flag/score/group worth judging, so it only ever
+  // shows under "All" or "Failed".
+  if (record.status !== 'ready') return false
+
   switch (filter) {
-    case 'all':
-      return true
     case 'unflagged':
       return record.flag === 'none'
     case 'accepted':

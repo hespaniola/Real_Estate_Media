@@ -195,6 +195,15 @@ img {
   color: var(--text-0);
 }
 
+.chip--warn {
+  color: var(--red);
+}
+
+.chip--warn.chip--active {
+  background: var(--red-dim);
+  border-color: var(--red);
+}
+
 .select {
   background: var(--bg-3);
   border: 1px solid var(--border);
@@ -283,6 +292,10 @@ img {
 .stat--reject {
   color: var(--red);
 }
+.stat--failed {
+  color: var(--red);
+  font-weight: 600;
+}
 
 /* ---------- progress bar ---------- */
 
@@ -351,6 +364,31 @@ img {
 
 .card--rejected {
   opacity: 0.45;
+}
+
+.card--failed {
+  border-color: var(--red-dim);
+}
+
+.card__thumb--failed {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg-2);
+  color: var(--red);
+}
+
+.card__failed-icon {
+  font-size: 20px;
+}
+
+.card__failed-label {
+  font-size: 10.5px;
+  color: var(--text-2);
 }
 
 .card__thumb-wrap {
@@ -521,6 +559,11 @@ img {
   object-fit: contain;
 }
 
+.inspector__preview-empty {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
 .inspector__flagbar {
   display: flex;
   gap: 6px;
@@ -613,6 +656,35 @@ img {
 .metrics-panel__group--pick {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.metrics-panel__error {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 18px;
+}
+
+.metrics-panel__error-title {
+  color: var(--red);
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.metrics-panel__error-message {
+  color: var(--text-1);
+  font-size: 11.5px;
+  line-height: 1.5;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.metrics-panel__exif-path {
+  word-break: break-all;
+  font-size: 10.5px;
+  color: var(--text-1);
 }
 
 .metrics-panel__section-title {

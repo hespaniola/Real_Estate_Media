@@ -58,7 +58,10 @@ export default function App(): JSX.Element {
   )
 
   const visibleRecords = useMemo(() => {
-    const list = order.map((id) => records[id]).filter((r) => r && r.status === 'ready')
+    // Errored photos stay visible (as a clearly-marked failed card) instead
+    // of silently vanishing from the grid — an all-failed folder should
+    // never look like an empty one.
+    const list = order.map((id) => records[id]).filter((r) => r && (r.status === 'ready' || r.status === 'error'))
     const filtered = list.filter((r) => passesFilter(r, filter))
     return sortRecords(filtered, sortMode)
   }, [order, records, filter, sortMode])

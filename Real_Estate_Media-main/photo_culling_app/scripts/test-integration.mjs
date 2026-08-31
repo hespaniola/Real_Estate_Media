@@ -4,6 +4,7 @@
 import sharp from 'sharp'
 import assert from 'node:assert/strict'
 import path from 'node:path'
+import crypto from 'node:crypto'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { discoverImages } from '../electron/main/scanner.ts'
@@ -74,13 +75,36 @@ async function main() {
     .toBuffer()
   await makeFakeRaw(path.join(shootDir, 'landscape.cr2'), previewJpeg)
 
+  // A RAW file whose LARGEST "SOI...EOI"-shaped byte span is pure garbage
+  // (mimicking maker-note/sensor data that coincidentally contains those
+  // marker bytes) sitting before a smaller but genuinely decodable preview.
+  // The extractor must fall through to the real one instead of failing.
+  const fallbackPreview = await sharp({ create: { width: 1800, height: 1200, channels: 3, background: '#886644' } })
+    .jpeg()
+    .toBuffer()
+  const bogusSpan = Buffer.concat([
+    Buffer.from([0xff, 0xd8, 0xff]),
+    crypto.randomBytes(20 * 1024),
+    Buffer.from([0xff, 0xd9])
+  ])
+  await writeFile(
+    path.join(shootDir, 'raw_with_bogus_span.cr2'),
+    Buffer.concat([
+      Buffer.from('HEADER_'.repeat(20)),
+      bogusSpan,
+      Buffer.from('MAKER_NOTE_'.repeat(20)),
+      fallbackPreview,
+      Buffer.from('TRAILER_'.repeat(20))
+    ])
+  )
+
   await mkdir(path.join(shootDir, 'subfolder'), { recursive: true })
   await makePhoto(path.join(shootDir, 'subfolder', 'nested_shot.jpg'), { seed: 7, brightness: 180, pattern: 'grid' })
 
   console.log('\nDiscovering images...')
   const files = await discoverImages(shootDir)
   console.log(`  found ${files.length} files`)
-  assert.equal(files.length, 7, `expected 7 discovered files, got ${files.length}`)
+  assert.equal(files.length, 8, `expected 8 discovered files, got ${files.length}`)
   assert.ok(files.some((f) => f.kind === 'raw'), 'expected at least one RAW file discovered')
   assert.ok(
     files.some((f) => f.filePath.includes('subfolder')),
@@ -118,11 +142,18 @@ async function main() {
   }
   console.log('  ok  - every result has positive width/height')
 
-  const rawResult = results.find((r) => r.file.kind === 'raw')
+  const rawResult = results.find((r) => r.file.fileName === 'landscape.cr2')
   assert.ok(rawResult, 'expected a raw result')
   assert.equal(rawResult.result.width, 2400)
   assert.equal(rawResult.result.height, 1600)
   console.log('  ok  - RAW file preview extracted at correct embedded-JPEG resolution (2400x1600)')
+
+  const bogusSpanResult = results.find((r) => r.file.fileName === 'raw_with_bogus_span.cr2')
+  assert.ok(bogusSpanResult, 'expected the bogus-span raw result')
+  assert.equal(bogusSpanResult.result.ok, true, `expected fallback to succeed, got: ${bogusSpanResult.result.error}`)
+  assert.equal(bogusSpanResult.result.width, 1800)
+  assert.equal(bogusSpanResult.result.height, 1200)
+  console.log('  ok  - a larger non-decodable byte span is skipped in favor of the real, smaller, decodable preview')
 
   console.log('\nScoring + duplicate clustering...')
   const scored = results.map(({ file, result }) => ({
