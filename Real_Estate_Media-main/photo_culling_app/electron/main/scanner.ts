@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { readdir, stat } from 'node:fs/promises'
 import { classifyExtension } from '../shared/types'
+import type { FileKind } from '../shared/types'
 import { CACHE_DIR_NAME } from './cache'
 
 export interface DiscoveredFile {
@@ -8,7 +9,7 @@ export interface DiscoveredFile {
   fileName: string
   dirPath: string
   ext: string
-  kind: 'raw' | 'jpeg'
+  kind: Exclude<FileKind, 'other'>
   size: number
   mtimeMs: number
 }

@@ -5,7 +5,7 @@ import sharp from 'sharp'
 import assert from 'node:assert/strict'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { mkdir, rm, writeFile, copyFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { discoverImages } from '../electron/main/scanner.ts'
 import { ensureCacheDirs, JsonMapStore } from '../electron/main/cache.ts'
@@ -101,11 +101,16 @@ async function main() {
   await mkdir(path.join(shootDir, 'subfolder'), { recursive: true })
   await makePhoto(path.join(shootDir, 'subfolder', 'nested_shot.jpg'), { seed: 7, brightness: 180, pattern: 'grid' })
 
+  // A real iPhone-style HEIC photo — the format sharp's prebuilt libvips
+  // cannot decode directly (see imageWorker.ts's 'heif' branch).
+  await copyFile(path.join(root, 'scripts/fixtures/sample.heic'), path.join(shootDir, 'iphone_photo.heic'))
+
   console.log('\nDiscovering images...')
   const files = await discoverImages(shootDir)
   console.log(`  found ${files.length} files`)
-  assert.equal(files.length, 8, `expected 8 discovered files, got ${files.length}`)
+  assert.equal(files.length, 9, `expected 9 discovered files, got ${files.length}`)
   assert.ok(files.some((f) => f.kind === 'raw'), 'expected at least one RAW file discovered')
+  assert.ok(files.some((f) => f.kind === 'heif'), 'expected the HEIC file discovered')
   assert.ok(
     files.some((f) => f.filePath.includes('subfolder')),
     'expected recursive discovery into subfolder'
@@ -154,6 +159,13 @@ async function main() {
   assert.equal(bogusSpanResult.result.width, 1800)
   assert.equal(bogusSpanResult.result.height, 1200)
   console.log('  ok  - a larger non-decodable byte span is skipped in favor of the real, smaller, decodable preview')
+
+  const heicResult = results.find((r) => r.file.fileName === 'iphone_photo.heic')
+  assert.ok(heicResult, 'expected the HEIC result')
+  assert.equal(heicResult.result.ok, true, `expected HEIC decode to succeed, got: ${heicResult.result.error}`)
+  assert.equal(heicResult.result.width, 1280)
+  assert.equal(heicResult.result.height, 854)
+  console.log('  ok  - a real HEIC (iPhone-format) photo decodes correctly via the heic-convert fallback')
 
   console.log('\nScoring + duplicate clustering...')
   const scored = results.map(({ file, result }) => ({

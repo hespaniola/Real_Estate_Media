@@ -2,6 +2,7 @@ import { parentPort } from 'node:worker_threads'
 import { readFile } from 'node:fs/promises'
 import sharp from 'sharp'
 import exifr from 'exifr'
+import convertHeic from 'heic-convert'
 import type { ExifSummary } from '../shared/types'
 import { computeExposure, computeComposition, computeDHash, computeSharpness } from './imageAnalysis'
 import { extractEmbeddedJpegCandidates } from './rawPreview'
@@ -22,9 +23,16 @@ function toShutterSpeedString(exposureTime: number | undefined): string | undefi
   return `1/${denominator}`
 }
 
-async function readExifSummary(filePath: string): Promise<ExifSummary> {
+/**
+ * Reading a HEIC file by *path* trips a bug in exifr's chunked box reader
+ * for at least some real HEIC files: it throws "bad seek" from a background
+ * read that isn't tied to the awaited parse() promise, so it isn't caught
+ * here and kills the whole worker thread instead. Passing an in-memory
+ * Buffer instead avoids exifr's file I/O/seeking path entirely.
+ */
+async function readExifSummary(input: string | Buffer): Promise<ExifSummary> {
   try {
-    const data = await exifr.parse(filePath, {
+    const data = await exifr.parse(input, {
       tiff: true,
       exif: true,
       gps: false,
@@ -68,7 +76,18 @@ const MAX_EMBEDDED_CANDIDATES = 5
  * candidates largest-first and keep the first one that actually decodes,
  * rather than trusting the biggest span outright.
  */
-async function getPreviewSource(filePath: string, kind: WorkerTask['kind']): Promise<sharp.Sharp> {
+interface PreviewSource {
+  image: sharp.Sharp
+  /**
+   * The original file's bytes, when already read into memory as part of
+   * getting the preview (RAW/HEIF). Reused for EXIF parsing so exifr reads
+   * the in-memory buffer instead of re-opening the file itself — see the
+   * comment on readExifSummary's HEIF path for why that matters.
+   */
+  sourceBuffer: Buffer | null
+}
+
+async function getPreviewSource(filePath: string, kind: WorkerTask['kind']): Promise<PreviewSource> {
   if (kind === 'raw') {
     const buffer = await readFile(filePath)
     const candidates = extractEmbeddedJpegCandidates(buffer).slice(0, MAX_EMBEDDED_CANDIDATES)
@@ -78,18 +97,27 @@ async function getPreviewSource(filePath: string, kind: WorkerTask['kind']): Pro
         .metadata()
         .then((m) => !!m.width && !!m.height)
         .catch(() => false)
-      if (valid) return image
+      if (valid) return { image, sourceBuffer: buffer }
     }
     const thumb = await exifr.thumbnail(filePath).catch(() => null)
-    if (thumb) return sharp(Buffer.from(thumb))
+    if (thumb) return { image: sharp(Buffer.from(thumb)), sourceBuffer: buffer }
     throw new Error('No decodable embedded preview found in RAW file')
   }
-  return sharp(filePath)
+  if (kind === 'heif') {
+    // sharp's prebuilt libvips bundles libheif's AVIF (AV1) decode path but
+    // not the HEVC one HEIC actually uses (HEVC's patent licensing keeps it
+    // out of the prebuilt binaries), so sharp(filePath) fails on every
+    // iPhone-style .heic/.heif photo. Decode via a WASM libheif build first.
+    const buffer = await readFile(filePath)
+    const jpeg = await convertHeic({ buffer, format: 'JPEG', quality: 0.92 })
+    return { image: sharp(Buffer.from(jpeg)), sourceBuffer: buffer }
+  }
+  return { image: sharp(filePath), sourceBuffer: null }
 }
 
 async function processFile(task: WorkerTask): Promise<WorkerResult> {
   try {
-    const source = await getPreviewSource(task.filePath, task.kind)
+    const { image: source, sourceBuffer } = await getPreviewSource(task.filePath, task.kind)
     const base = source.rotate()
     // sharp's metadata() reports the *pre-pipeline* input, but the
     // orientation tag it reads is accurate — use it to report the true
@@ -157,7 +185,9 @@ async function processFile(task: WorkerTask): Promise<WorkerResult> {
         .toFile(task.previewPath)
     ])
 
-    const exif = await readExifSummary(task.filePath)
+    // For HEIF, parse EXIF from the buffer already in memory rather than
+    // handing exifr the file path — see readExifSummary's comment.
+    const exif = await readExifSummary(task.kind === 'heif' && sourceBuffer ? sourceBuffer : task.filePath)
 
     return {
       id: task.id,
@@ -177,6 +207,30 @@ async function processFile(task: WorkerTask): Promise<WorkerResult> {
   }
 }
 
+let currentTaskId: number | null = null
+
+// This worker is long-lived and handles many tasks over its lifetime. A
+// stray unhandled rejection from a third-party library (exifr's HEIC reader
+// has one — see readExifSummary above) would otherwise kill the whole
+// worker thread and silently strand every task still queued behind it. Fail
+// just the in-flight task instead of taking the worker down with it.
+function handleFatal(err: unknown): void {
+  const message = err instanceof Error ? err.message : String(err)
+  console.error('[imageWorker] non-fatal to the pool, failing current task:', message)
+  if (currentTaskId !== null) {
+    parentPort?.postMessage({ id: currentTaskId, ok: false, error: message })
+    currentTaskId = null
+  }
+}
+process.on('uncaughtException', handleFatal)
+process.on('unhandledRejection', handleFatal)
+
 parentPort?.on('message', (task: WorkerTask) => {
-  processFile(task).then((result) => parentPort?.postMessage(result))
+  currentTaskId = task.id
+  processFile(task).then((result) => {
+    // A handleFatal() call for this same task may have already answered it.
+    if (currentTaskId !== task.id) return
+    currentTaskId = null
+    parentPort?.postMessage(result)
+  })
 })

@@ -15,17 +15,19 @@ npm run dev        # launches the app with hot reload
 npm run build       # type-checks and bundles main/preload/renderer into out/
 npm run typecheck   # tsc --noEmit over both the Node and web halves
 npm run test:analysis     # unit-checks the sharpness/exposure/composition/hash/RAW math against synthetic images
-npm run test:integration  # runs the real scanner -> worker pool -> clustering pipeline end-to-end
+npm run test:integration  # runs the real scanner -> worker pool -> clustering pipeline end-to-end (RAW + a real HEIC fixture)
+npm run test:store        # regression check for filter behavior on failed/errored photos
 npm run dist         # electron-builder installer (mac/win/linux) — not exercised in CI, sanity-check locally before shipping
 ```
 
 ## How it works
 
-**Import.** Drag a folder onto the window (or use "Choose Folder"). The app recursively scans it for RAW and JPEG/TIFF/PNG/HEIC files.
+**Import.** Drag a folder onto the window (or use "Choose Folder"). The app recursively scans it for RAW, HEIC/HEIF, and JPEG/TIFF/PNG/WebP files. Video files (.mov, .mp4, .hevc, etc.) are intentionally skipped — this is a photo culler, not a video one.
 
 **Analysis (`electron/main`).** Each file is handed to a pool of `worker_threads` (sized to CPU count) so hundreds of photos process in parallel without blocking the UI:
 
-- **RAW preview.** Rather than a format-specific RAW decoder, `rawPreview.ts` scans the file's raw bytes for embedded JPEG `SOI...EOI` streams (every mainstream RAW format — CR2/CR3, NEF, ARW, RAF, RW2, ORF, DNG… — carries one for fast preview) and keeps the largest one. This is the same trick fast RAW browsers use, and it's format-agnostic instead of needing a parser per vendor.
+- **RAW preview.** Rather than a format-specific RAW decoder, `rawPreview.ts` scans the file's raw bytes for embedded JPEG `SOI...EOI` streams (every mainstream RAW format — CR2/CR3, NEF, ARW, RAF, RW2, ORF, DNG… — carries one for fast preview) and keeps the largest one that actually decodes, falling back through smaller candidates (and finally the EXIF thumbnail) since the largest matching byte span isn't always a real, decodable JPEG. This is the same trick fast RAW browsers use, and it's format-agnostic instead of needing a parser per vendor.
+- **HEIC/HEIF preview.** sharp's prebuilt libvips bundles libheif's AVIF (AV1) decode path but not the HEVC one iPhone-format `.heic` photos actually use (HEVC's patent licensing keeps it out of the prebuilt binaries) — `sharp(file)` fails outright on them. These are decoded to JPEG first via `heic-convert` (a WASM libheif build), then handed to the same sharp pipeline as everything else. EXIF for HEIC is parsed from that same in-memory buffer rather than the file path — exifr's HEIC box reader has a bug on some real files where it throws from a detached background read outside its own awaited promise, which no try/catch around the call site catches; reading it from a buffer avoids exifr's file I/O path entirely. As defense in depth, each worker also installs a top-level `uncaughtException`/`unhandledRejection` handler that fails just the in-flight task instead of letting a surprise from any library silently kill the worker and strand everything still queued behind it.
 - **Sharpness.** A Laplacian convolution over a 1024px-downsampled greyscale frame; the pixel-wise variance of the response is mapped through a diminishing-returns curve to a 0–100 score.
 - **Exposure.** Mean brightness and contrast (stdev) scored against a well-exposed target range, with shadow/highlight clipping percentages subtracted as a direct penalty.
 - **Composition.** A Sobel gradient magnitude map stands in for saliency. Where that energy's centroid falls relative to the four rule-of-thirds intersections drives the composition score; a secondary pass looks for a dominant near-horizontal edge (a horizon or architectural line) and penalizes it if tilted.
@@ -70,7 +72,7 @@ electron/
   shared/     types + the pure scoring/hashing functions used by both main and the renderer
 src/renderer/ React UI (Vite)
 resources/models/  bundled MediaPipe face-detector model (copied into the renderer build at install/dev/build time)
-scripts/      copy-mediapipe-assets, plus the two test scripts above
+scripts/      copy-mediapipe-assets, the test scripts above, and fixtures/ (a real HEIC test file)
 ```
 
 ## Notes / limitations

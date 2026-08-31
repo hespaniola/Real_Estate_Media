@@ -1,4 +1,4 @@
-export type FileKind = 'raw' | 'jpeg' | 'other'
+export type FileKind = 'raw' | 'jpeg' | 'heif' | 'other'
 
 export type FlagState = 'none' | 'accepted' | 'rejected' | 'favorite'
 
@@ -109,11 +109,18 @@ export const RAW_EXTENSIONS = new Set([
   '.iiq', '.3fr', '.fff', '.mrw', '.x3f', '.srw'
 ])
 
-export const JPEG_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.webp', '.heic', '.heif'])
+export const JPEG_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.webp'])
+
+// HEIC/HEIF (the default iPhone camera format) is a distinct container
+// libvips' prebuilt binaries can't decode directly — sharp bundles libheif's
+// AVIF decode path but not the HEVC one HEIC actually uses — so it gets
+// converted to JPEG first rather than handed to sharp() like a plain JPEG.
+export const HEIF_EXTENSIONS = new Set(['.heic', '.heif'])
 
 export function classifyExtension(ext: string): FileKind {
   const lower = ext.toLowerCase()
   if (RAW_EXTENSIONS.has(lower)) return 'raw'
+  if (HEIF_EXTENSIONS.has(lower)) return 'heif'
   if (JPEG_EXTENSIONS.has(lower)) return 'jpeg'
   return 'other'
 }

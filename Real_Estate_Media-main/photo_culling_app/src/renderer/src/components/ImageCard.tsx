@@ -47,7 +47,9 @@ export default function ImageCard({ record, selected, onSelect, onOpen }: ImageC
           </div>
         )}
 
-        {record.kind === 'raw' && <div className="card__raw-badge">RAW</div>}
+        {(record.kind === 'raw' || record.kind === 'heif') && (
+          <div className="card__raw-badge">{record.kind === 'raw' ? 'RAW' : 'HEIC'}</div>
+        )}
 
         <div className="card__flags">
           <button
