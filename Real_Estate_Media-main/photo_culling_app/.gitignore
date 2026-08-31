@@ -1,0 +1,9 @@
+node_modules
+out
+dist
+dist-electron
+release
+src/renderer/public/mediapipe
+*.log
+.DS_Store
+.photo-culling-cache
